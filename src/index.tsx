@@ -3,199 +3,152 @@ import * as ReactDOM from 'react-dom';
 import './index.css';
 import { setPriority } from 'os';
 
-//Squareのプロパティ
-interface SquareProps {
-    value: any;
-    onClick: () => void;
-}
-
-/*class Square extends React.Component<SquareProps, SquareState> {
-    render() {
-        return (
-            <button
-                className="square"
-                onClick={() => this.props.onClick()}
-            >
-                {this.props.value}
-            </button>
-        );
-    }
-}*/
-
-//Squareを関数コンポーネント化
-function Square(props: SquareProps) {
+// ***************************************
+// Todoの型定義
+// ***************************************
+interface Todo {
+    id: number;
+    name: string;
+  }
+  
+  // ***************************************
+  // Todo単体の定義
+  // ***************************************
+  // Propsの型定義
+  interface TodoListItemProps {
+    todo: Todo;
+    onDelete: (todo: Todo) => void;
+  }
+  
+  const TodoListItem: React.FunctionComponent<TodoListItemProps> = ({
+    todo,
+    onDelete
+  }) => {
+    const onClick = () => {
+      onDelete(todo);
+    };
+  
     return (
-        <button className="square" onClick={props.onClick}>
-            {props.value}
-        </button>
+      <li>
+        {todo.name} <button onClick={onClick}>Delete</button>
+      </li>
     );
-}
-
-interface BoardProps {
-    squares: ('O' | 'X' | null)[];
-    onClick: (i: number) => void;
-}
-
-//BoardはReactコンポーネントクラス．propsを受け取り，renderを通して表示するビューの階層構造を返す．
-class Board extends React.Component<BoardProps, {}> {
-    /*constructor(props: any) {
-        super(props);
-        this.state = {
-            squares: Array(9).fill(null),
-            xIsNext: true,
-        };
-    }*/
-
-    renderSquare(i: number) {
-        return (
-            <Square
-                value={this.props.squares[i]}
-                onClick={() => this.props.onClick(i)}
-            />
-        );
-    }
-
-    //renderが返すのは画面上に表示したい説明書きのこと．
+  };
+  
+  // ***************************************
+  // Todoリストの一覧表示部分
+  // ***************************************
+  // Propsの型定義
+  interface TodosListProps {
+    todos: Todo[];
+    onDelete: (todo: Todo) => void;
+  }
+  
+  const TodosList: React.FunctionComponent<TodosListProps> = ({
+    todos,
+    onDelete
+  }) => (
+    <ul>
+      {todos.map(todo => (
+        <TodoListItem todo={todo} key={todo.id} onDelete={onDelete} />
+      ))}
+    </ul>
+  );
+  
+  // ***************************************
+  // Todo追加用フォーム
+  // ***************************************
+  // Propsの型定義
+  interface NewTodoFormProps {
+    onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    onAdd: (event: React.FormEvent<HTMLFormElement>) => void;
+    todo: Todo;
+  }
+  
+  const NewTodoForm: React.FunctionComponent<NewTodoFormProps> = ({
+    onChange,
+    onAdd,
+    todo
+  }) => (
+    <form onSubmit={onAdd}>
+      <input onChange={onChange} value={todo.name} />
+      <button type="submit">Add a todo</button>
+    </form>
+  );
+  
+  // ***************************************
+  // Todoリスト本体部分
+  // ***************************************
+  // 状態(State)の型定義
+  interface State {
+    newTodo: Todo;
+    todos: Todo[];
+  }
+  
+  class App extends React.Component<{}, State> {
+    state = {
+      newTodo: {
+        id: 1,
+        name: ""
+      },
+      todos: []
+    };
+  
     render() {
-        /*const winner = calculateWinner(this.state.squares);
-        let status;
-        if(winner) {
-            status = 'Winner: ' + winner;
-        } else {
-            status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
-        }*/
-
-        return (
-            <div>
-                <div className="board-row">
-                    {this.renderSquare(0)}
-                    {this.renderSquare(1)}
-                    {this.renderSquare(2)}
-                </div>
-                <div className="board-row">
-                    {this.renderSquare(3)}
-                    {this.renderSquare(4)}
-                    {this.renderSquare(5)}
-                </div>
-                <div className="board-row">
-                    {this.renderSquare(6)}
-                    {this.renderSquare(7)}
-                    {this.renderSquare(8)}
-                </div>
-            </div>
-        );
+      return (
+        <div>
+          <h2>React + TypeScript Todoリスト</h2>
+          <NewTodoForm
+            todo={this.state.newTodo}
+            onAdd={this.addTodo}
+            onChange={this.handleTodoChange}
+          />
+          <TodosList todos={this.state.todos} onDelete={this.deleteTodo} />
+        </div>
+      );
     }
-}
-
-interface HistoryData {
-    squares: ('O' | 'X' | null)[];
-}
-
-interface GameState {
-    history: HistoryData[];
-    xIsNext: boolean;
-    stepNumber: number;
-}
-
-class Game extends React.Component<{}, GameState> {
-    constructor(props: any) {
-        super(props);
-        this.state = {
-            history: [{
-                squares: Array(9).fill(null),
-            }],
-            xIsNext: true,
-            stepNumber: 0,
-        };
-    }
-
-    handleClick(i: number) {
-        const history = this.state.history;
-        const current = history[history.length - 1]
-        let squares = current.squares.slice();//sliceを呼ぶことで配列のコピーを作成．
-        if (calculateWinner(squares) || squares[i]) {
-            return;
+  
+    // Todoの追加
+    private addTodo = (event: React.FormEvent<HTMLFormElement>) => {
+      // デフォルトの送信機能を使わない
+      event.preventDefault();
+  
+      // 空なら処理を止める
+      if (!this.state.newTodo.name.length) {
+        return;
+      }
+  
+      // TodoリストStateの更新、引数には現在(更新前)のStateが入ってくる
+      this.setState(previousState => ({
+        newTodo: {
+          id: previousState.newTodo.id + 1,
+          name: ""
+        },
+        // 現在のTODOの配列と、新しいTODOを結合する
+        todos: [...previousState.todos, previousState.newTodo]
+      }));
+    };
+  
+    // フォームの内容が変わったらnewTodoの内容も変える
+    private handleTodoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      const inputedValue = event.target.value;
+  
+      this.setState({
+        newTodo: {
+          ...this.state.newTodo,
+          name: inputedValue
         }
-        squares[i] = this.state.xIsNext ? 'X' : 'O';
-        this.setState({
-            history: history.concat([{
-                squares,
-            }]),
-            stepNumber: history.length,
-            xIsNext: !this.state.xIsNext,
-        });
-    }
-
-    jumpTo(step: number) {
-        this.setState({
-            stepNumber: step,
-            xIsNext: (step % 2) === 0,
-        });
-    }
-
-    render() {
-        const history = this.state.history;
-        const current = history[this.state.stepNumber];
-        const winner = calculateWinner(current.squares);
-        const moves = history.map((step, move) => {
-            const desc = move ?
-                'Go to move #' + move :
-                'Go to game start';
-            return (
-                <li key={move} >
-                    <button onClick={() => this.jumpTo(move)}> {desc}</button>
-                </li>
-            )
-        });
-
-        let status;
-        if (winner) {
-            status = 'Winner: ' + winner;
-        } else {
-            status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
-        }
-        return (
-            <div className="game">
-                <div className="game-board">
-                    <Board
-                        squares={current.squares}
-                        onClick={(i) => this.handleClick(i)}
-                    />
-                </div>
-                <div className="game-info">
-                    <div>{status}</div>
-                    <ol>{moves}</ol>
-                </div>
-            </div>
-        );
-    }
-}
-
-ReactDOM.render(
-    <Game />,
-    document.getElementById('root')
-);
-
-//勝者判定の関数
-function calculateWinner(squares: any) {
-    const lines = [
-        //横
-        [0, 1, 2],
-        [3, 4, 5],
-        [6, 7, 8],
-        //縦
-        [0, 3, 6],
-        [1, 4, 7],
-        [2, 5, 8],
-        //斜め
-        [0, 4, 8],
-        [2, 4, 6],
-    ];
-    for (let i = 0; i < lines.length; i++) {
-        const [a, b, c] = lines[i];
-        if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-            return squares[a];
-        }
-    }
-    return null;
-}
+      });
+    };
+  
+    // Todoの削除
+    private deleteTodo = (todoToDelete: Todo) => {
+      this.setState(previousState => ({
+        todos: [
+          ...previousState.todos.filter(todo => todo.id !== todoToDelete.id)
+        ]
+      }));
+    };
+  }
+  
+  ReactDOM.render(<App />, document.getElementById("root"));
