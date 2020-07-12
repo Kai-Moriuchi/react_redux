@@ -2,24 +2,21 @@ import React, { Component } from 'react';
 import * as ReactDOM from 'react-dom';
 import './index.css';
 import { setPriority } from 'os';
+import { on } from 'cluster';
 
-// ***************************************
-// Todoの型定義
-// ***************************************
+//ToDoの型を定義
 interface Todo {
     id: number;
     name: string;
   }
   
-  // ***************************************
-  // Todo単体の定義
-  // ***************************************
-  // Propsの型定義
+//ToDoListItemのpropsの型定義
   interface TodoListItemProps {
-    todo: Todo;
-    onDelete: (todo: Todo) => void;
+    todo: Todo;//やること
+    onDelete: (todo: Todo) => void;//削除
   }
   
+  //ListItemの中身
   const TodoListItem: React.FunctionComponent<TodoListItemProps> = ({
     todo,
     onDelete
@@ -35,15 +32,12 @@ interface Todo {
     );
   };
   
-  // ***************************************
-  // Todoリストの一覧表示部分
-  // ***************************************
-  // Propsの型定義
+  // ListのPropsの型定義
   interface TodosListProps {
     todos: Todo[];
     onDelete: (todo: Todo) => void;
   }
-  
+  // List全体
   const TodosList: React.FunctionComponent<TodosListProps> = ({
     todos,
     onDelete
@@ -55,16 +49,14 @@ interface Todo {
     </ul>
   );
   
-  // ***************************************
-  // Todo追加用フォーム
-  // ***************************************
-  // Propsの型定義
+  // 新しいItemのPropsの型定義
   interface NewTodoFormProps {
     onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
     onAdd: (event: React.FormEvent<HTMLFormElement>) => void;
     todo: Todo;
   }
   
+  // 新しいItemの中身
   const NewTodoForm: React.FunctionComponent<NewTodoFormProps> = ({
     onChange,
     onAdd,
