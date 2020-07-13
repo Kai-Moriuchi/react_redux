@@ -1,8 +1,9 @@
 # やること
 
-- ~~ReactのチュートリアルをTypeScriptでやる~~ （ Done ） [参考サイト](https://qiita.com/m0a/items/d723259cdeebe382b5f6)
+- ~~ReactのチュートリアルをTypeScriptでやる~~ （ 完了 ） [参考サイト](https://qiita.com/m0a/items/d723259cdeebe382b5f6)
 - React + TypeScript でToDoアプリ作成　（一応やったけど全部理解できたかは微妙） [参考サイト](https://qiita.com/oimo23/items/239686d1fe7bb5880182#star-%E3%81%BE%E3%81%A8%E3%82%81)
 - React + TypeScript + Redux でToDoアプリ作成 （未着手）
+- React HooksとかRedux Sagaとかの理解 （未着手）
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
